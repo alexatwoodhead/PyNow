@@ -11,7 +11,7 @@ Capture data input in a controlled series of steps.
   * calculation logic
   * and compelling visual data representation.
 
-= The framework provides
+# The framework provides
 * Menu Navigation to authorized apps
 * Aggregate entered data over several steps
 * Authentication - Leverage you existing organisational credentials
