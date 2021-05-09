@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:27:47">
+<Class name="Py.App.TASPlot">
+<Description>
+Copyright Alex Woodhead 2021
+License MIT</Description>
+<Super>Py.View.pyInterface</Super>
+<TimeChanged>65873,80260.740236949</TimeChanged>
+<TimeCreated>65866,73901.8447254</TimeCreated>
+
+<Parameter name="MenuItemName">
+<Default>TAS Plot</Default>
+</Parameter>
+
+<Parameter name="ResourceName">
+<Description>
+Create unique security resource to match</Description>
+<Default>App_TASPlot</Default>
+</Parameter>
+
+<Parameter name="MenuGroupName">
+<Default>Igneous Petrology</Default>
+</Parameter>
+
+<Parameter name="SubmitButtonName">
+<Default>Next</Default>
+</Parameter>
+
+<Method name="pyDisplay">
+<Description><![CDATA[
+Called after<ol>
+ <li>Sucessful pyUpdate</li>
+ <li></li>
+</ol>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pyDictofRequestSteps:%SYS.Python,&pyDictofHTMLVariables:%SYS.Python,currentStep:%Integer,tmpFilePath:%String]]></FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[
+  import matplotlib.pyplot as plt
+  from pyrolite.util.plot.axes import share_axes
+  from pyrolite.plot.templates import TAS
+  #print(f"<h3>This is a Step {currentStep} </h3>")
+  if currentStep==1:
+    pyDictofHTMLVariables['Message']='Hello App page 1'
+  if currentStep==2:
+    pyDictofHTMLVariables['Message']='Hello App page 2'
+  if currentStep==3:
+    pyDictofHTMLVariables['Message']='Hello App page 3'
+    #ax = TAS(linewidth=0.5, labels='ID')
+    #print(f"<h3>tmpFilePath:{tmpFilePath}</h3>")
+    #plt.savefig(f"{tmpFilePath}")
+  return
+]]></Implementation>
+</Method>
+
+<Method name="pyListOfSteps">
+<Description>
+This method is implemented by App developer in sub-class to provide
+the list of steps through a work-flow to provide navigation breadcrumbs.
+Return List of Dictionary (StepName:[name],CanReview:[Boolean],ClearAhead:[Boolean:true])
+The length of the list is the number of display steps in the workflow
+Unique Step name to display in breadcrumbs
+CanReview - Can this step be revisited (go back)
+ClearAhead - When going back a step or more, then if "submitting" again, the future steps are discarded</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>currentStep:%Integer=0</FormalSpec>
+<Language>python</Language>
+<ReturnType>Py.Builtins.list</ReturnType>
+<Implementation><![CDATA[	return ["Step 1","Step 2","Step 3"]
+]]></Implementation>
+</Method>
+
+<Method name="pyUpdate">
+<Description><![CDATA[
+Called after<ol>
+<li>Sucessful pyValidate (no errors or confirm messages)</li>
+<li>Resubmit of same form data after confirm messages acknowldged</li>
+</ol> 
+pRequestSteps - A cumulative Dictionary of data submitted at each step
+  Allows the App to collect information in several steps before completing
+  a final operation. 
+  [
+   {Step:1, Data:{TODO}},
+   {Step:2, Data:{TODO}},
+   {Step:3, Data:{TODO}}
+  ]
+Returns the next step number to move to
+Use this return as a mechanism to skip steps based on input
+TODO - 
+Extract information from pRequest and add to stepStore to retain between steps
+pMessages - Messages to be displayed above NEXT display step]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pyDictofRequestSteps:%SYS.Python,&pyListOfMessages:%SYS.Python,currentStep:%Integer=0]]></FormalSpec>
+<Language>python</Language>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	if currentStep==3:
+	  return currentStep
+	return currentStep+1
+]]></Implementation>
+</Method>
+
+<XData name="Step1">
+<Description>
+Example of HTML template for Step 1
+To activate feature simply populate pHTMLVariables via pyDisplay method
+Simply add subsequent XData blocks for additional display steps. </Description>
+<Data><![CDATA[<p>"{Message}"</p>
+]]></Data>
+</XData>
+
+<XData name="Step2">
+<Data><![CDATA[<p>"{Message}"</p>
+]]></Data>
+</XData>
+
+<XData name="Step3">
+<Data><![CDATA[
+<div>
+<p>"{Message}"</p>
+<div>"{PLOT}"</div>
+</div>
+]]></Data>
+</XData>
+</Class>
+</Export>

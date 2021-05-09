@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:26:31">
+<Class name="Py.View.PlotImage">
+<Description>
+PyNow
+Copyright Alex Woodhead 2021
+License MIT</Description>
+<Super>%CSP.StreamServer</Super>
+<TimeChanged>65873,80206.833747539</TimeChanged>
+<TimeCreated>65873,36180.5896648</TimeCreated>
+
+<Method name="OnPage">
+<Description><![CDATA[
+The <method>OnPage()</method> is called by the CSP dispatcher to generate the
+page content.  For %CSP.StreamServer, since the content type is actually a stream, not HTML
+we simply write out the stream data.]]></Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Quit:%stream=$$$NULLOREF $$$OK
+	Do %stream.OutputToDevice()
+	do ##class(%File).Delete(%stream.Filename)
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnPreHTTP">
+<Description><![CDATA[
+The <method>OnPostHTTP()</method> is called by the CSP dispatcher before the HTTP
+headers have been sent.  Here, we check that the incoming STREAMOID value is valid,
+then we set the appropriate content type and content length values into the %response
+object (see <class>%CSP.Request</class>), in preparation for sending the image data
+in the <method>OnPage()</method>.]]></Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	set tmpDir=$S($system.Version.GetBuildOS()="Windows":"c:/tmp/PyAppImg/",1:"/tmp/PyAppImg/")
+	set image=$G(%request.Data("im",1))
+	set file=tmpDir_image
+	Set %stream=##class(%FileBinaryStream).%New()
+	Set sc=%stream.LinkToFile(file) If $$$ISERR(sc) Quit 0
+	Do %response.SetHeader("Content-Disposition","inline; filename="_image)
+	DO %response.SetHeader("Cache-Control","no-cache")
+	Set %response.NoCharSetConvert=1
+	Set %response.ContentType="application/octet-stream"
+	Set %response.ContentLength=%stream.Size
+	Set %response.Status="200 OK"
+	Quit 1
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:25:17">
+<Class name="Py.View.Framework">
+<Description>
+PyNow
+Copyright Alex Woodhead 2021
+License MIT</Description>
+<Super>%CSP.Page</Super>
+<TimeChanged>65873,80675.061503725</TimeChanged>
+<TimeCreated>65866,67780.489804</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// Start page
+	&html<<html>
+<head>>
+	Do ..AddCSSStyle()
+	&html<</head>
+<body>>
+	try {
+		set impBi=##class(%SYS.Python).Import("builtins")  /// TESTED
+	} catch err {
+		set appError="Problem invoking ##class(%SYS.Python).Import(""builtins"")"
+		set $ZE=appError_". Username: "_$USERNAME_" Error: "_err.DisplayString()
+		do BACK^%ETN
+		
+		W !,"<h3>An Error has occured in this App.</h3>"
+		W !,"<p>Information about this event has been collected and saved for the administrator to review.</p>"
+		&html<</body></html>>
+		return $$$OK
+	}
+	//
+	&html<<div>>
+	
+	// Current role selected
+	// Current resource selected -> Target Classname
+	do ..DrawMenu(.menuClass)
+
+	// If menuclass is empty display message and exit - section TESTED as user "anon"
+	if '##class(%Dictionary.ClassDefinition).%ExistsId($G(menuClass))
+	{
+		set appError="Username: """_$USERNAME_""" is not assigned any App resources via roles"
+		set $ZE=appError_". Username: "_$USERNAME
+		do BACK^%ETN
+		W !,"<h3>You are not currently enrolled in any Roles for this App.</h3>"
+		W !,"<p>Information about this event has been collected and saved for the administrator to review.</p>"
+		&html<</body></html>>
+		quit $$$OK	
+	}
+	
+	set appError=""
+	set isConfirm=+$G(%request.Data("__isConfirm",1))
+	set currentStep=+$G(%request.Data("__currentStep",1))
+	set crumbStep=+$G(%request.Data("__CrumbStep",1))
+	set:crumbStep currentStep=crumbStep // Default to Step 1
+	
+	// TODO Unpack %request into pRequest python variable
+	if $Data(%session) {
+		for i=1:1:currentStep-1 {
+			if $Data(%session.Data("Step"_i)) {
+				merge pRequestArray("Step"_i)=%session.Data("Step"_i)
+			}
+		}
+		kill %session.Data("Step"_currentStep)
+		// Forward session data ??
+	}
+	set k1=""
+	for {
+		set k1=$O(%request.Data(k1))
+		quit:k1=""
+		continue:$E(k1,1)="_"  // Ignore framework variables
+		set k2=""
+		for {
+			set k2=$O(%request.Data(k1,k2),1,data)
+			quit:k2=""
+			set pRequestArray("Step"_currentStep,k1,k2)=data
+			
+		}	
+	}
+	kill impBi
+	set pyDictofRequest=##class(Py.Helper).pyDictFromArray(.pRequestArray,,.impBi)
+	set pyListOfErrors=impBi.list()
+	set pyListOfConfirmMessages=impBi.list()
+	
+	
+	
+	// TODO - check if request data has changed
+	//        If so, reset "isConfirm"=0
+	set success=1
+	set displayStep=$Select(currentStep=0:1,1:currentStep) // default
+	if 'crumbStep,'isConfirm,currentStep>0 {  // not a resubmit of same data unchanged from a previous "Areyou sure?" Step
+		set success=0
+		try {
+			set success=$CLASSMETHOD(menuClass,"pyValidate",pyDictofRequest,pyListOfErrors,pyListOfConfirmMessages,currentStep)
+			set irisListOfErrors=##class(Py.Helper).ListFrompyList(pyListOfErrors,impBi)
+			set irisListOfConfirmMessages=##class(Py.Helper).ListFrompyList(pyListOfConfirmMessages,impBi)
+		} catch err {
+			// Todo add to error log
+			set success=0
+			set appError="Problem invoking pyValidate method for class "_menuClass
+			set $ZE=appError_". Username: "_$USERNAME_" Error: "_err.DisplayString()
+			do BACK^%ETN
+		}
+	}
+	if 'crumbStep,success,currentStep>0 {
+		try {
+			set pyListOfMessages=##class(Py.Helper).pyDictFromArray(,,.impBi)
+			set displayStep=$CLASSMETHOD(menuClass,"pyUpdate",pyDictofRequest,pyListOfMessages,currentStep)
+			set irisListOfMessages=##class(Py.Helper).ListFrompyList(pyListOfMessages,impBi)
+			set success=1
+		} catch err {
+			set success=0
+			set appError="Problem invoking pyUpdate method for class "_menuClass
+			set $ZE=appError_". Username: "_$USERNAME_" Error: "_err.DisplayString()
+			do BACK^%ETN
+		}
+		// if sucessful update then also preserve Request data into session
+		// in order to support going back via bread-crumbs
+		if success {
+			merge %session.Data("Step"_currentStep)=pRequestArray("Step"_currentStep)
+		}
+	}
+	
+	// ******************
+	//   Breadcrumbs added here from "Steps" and current
+	// ******************
+	if success {
+		set success=..DrawBreadCrumbs(currentStep, displayStep, menuClass, .maxSteps,impBi)	
+	}
+	
+	if 'success {
+		W !,"<h3>An Error has occured in this App.</h3>"
+		W !,"<p>Information about this event has been collected and saved for the administrator to review.</p>"
+		&html<</body></html>>
+		Quit $$$OK
+	}
+	
+	
+	// TODO - Display Error messages here
+	if $D(irisListOfErrors),$ListValid(irisListOfErrors),$ListGet(irisListOfErrors,1)'="" {
+		set listLen=$ListLength(irisListOfErrors)
+		W !,"<h3>Errors to fix on form before next step.</h3><ul>"
+		for i=1:1:listLen {
+			set data=$ListGet(irisListOfErrors,i)
+			continue:$L(data)=0
+			W !,"<li>",$ZCVT(data,"O","HTML"),"</li>"
+		}
+		W !,"</ul>"	
+	}
+		
+	// TODO - Display Confirm Messages here
+	if $D(pyListOfConfirmMessages),$ListValid(pyListOfConfirmMessages),$ListGet(pyListOfConfirmMessages,1)'="" {
+		set listLen=$ListLength(pyListOfConfirmMessages)
+		W !,"<h3>Confirm the following messages to move on to the next step. Or Update values as necessary.</h3><ul>"
+		for i=1:1:listLen {
+			set data=$ListGet(pyListOfConfirmMessages,i)
+			continue:$L(data)=0
+			W !,"<li>",$ZCVT(data,"O","HTML"),"</li>"
+		}
+		W !,"</ul>"	
+	}
+	
+	
+	set fMenu=$G(%request.Data("__Menu",1))
+	set fMenuItem=$G(%request.Data("__MenuItem",1))
+	W !,"<form>"
+	W !,"<input type=""hidden"" name=""__Menu"" value=""",$ZCVT(fMenu,"O","JS"),"""/>"
+	W !,"<input type=""hidden"" name=""__MenuItem"" value=""",$ZCVT(fMenuItem,"O","JS"),"""/>"
+	W !,"<input type=""hidden"" name=""__currentStep"" value=""",$ZCVT(displayStep,"O","JS"),"""/>"
+	
+	try {
+		set pyDictofHTMLVariables=##class(Py.Helper).pyDictFromArray(,,impBi)
+		// TO DO - move this tmp plot image directory out to be more configurable
+		set tmpDir=$S($system.Version.GetBuildOS()="Windows":"c:/tmp/PyAppImg/",1:"/tmp/PyAppImg/")
+		// Temp files and directories often get deleted so the app put it back if required
+		if '##class(%File).DirectoryExists(tmpDir) {
+			do ##class(%File).CreateDirectoryChain(tmpDir)
+		}
+		// delete previous session data
+		do ##class(%File).Delete(tmpDir_$J_".png")
+		do $CLASSMETHOD(menuClass,"pyDisplay",pyDictofRequest,pyDictofHTMLVariables,displayStep,tmpDir_$J)
+		// TODO unpack pyHTMLVariables into array
+		do ##class(Py.Helper).ArrayFrompyDict(pyDictofHTMLVariables,impBi,.aryHTMLVariables)
+		if $Data(aryHTMLVariables),##class(%Dictionary.XDataDefinition).%ExistsId(menuClass_"||Step"_displayStep) {
+			do ..DrawStepView(.aryHTMLVariables,menuClass_"||Step"_displayStep,tmpDir_$J_".png")
+		} else {
+			// Assume the application has itself written HTML input content as necessary	
+		}
+	} catch err {
+		set success=0
+		set appError="Problem invoking pyDisplay method for class "_menuClass
+			set $ZE=appError_". Username: "_$USERNAME_" Error: "_err.DisplayString()
+			do BACK^%ETN
+	}
+	W !,"<br/>"
+	
+	set submitButton=##class(%Dictionary.ParameterDefinition).%OpenId(menuClass_"||SubmitButtonName")
+	set submitButtonText=$Select($IsObject(submitButton):submitButton.Default,1:"Continue...")
+	W:displayStep<maxSteps !,"<input type=""Submit"" value=""",$ZCVT(submitButtonText,"O","JS"),"""/>"
+	W !,"</form>"
+	
+	// End Page
+	&html<</body></html>>
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="DrawStepView">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&aryHTMLVariables,xdataStep:%String,imgPath:%String]]></FormalSpec>
+<Implementation><![CDATA[
+	set xdata=##class(%Dictionary.XDataDefinition).%OpenId(xdataStep)
+	// TODO - Warning xdata not defined?
+	quit:'$IsObject(xdata)
+	
+	do xdata.Data.Rewind()
+	for {
+		quit:xdata.Data.AtEnd
+		set line=xdata.Data.ReadLine()
+		set varlen=$L(line,"""{")
+		if varlen=1 {
+			W !,line
+			continue	
+		}
+		W !,$P(line,"""{")
+		for i=2:1:varlen {
+			set nextPart=$P(line,"""{",i)
+			set key=$P(nextPart,"}""")
+			if key="PLOT" {
+				W !,"<p>imgPath=",$ZCVT(imgPath,"O","HTML"),"</p>"
+				
+				if $ZCVT(imgPath,"L")?1(1"/tmp/",1"c:/tmp/")1A.E1".png",##class(%File).Exists(imgPath) {
+					W !,"<img src=""Py.View.PlotImage.cls?im="_$J_".png""/>"
+				}
+			} else {
+				W:key'="" $ZCVT($G(aryHTMLVariables(key)),"O","HTML")
+			}
+			W $P(nextPart,"}""",2)
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="DrawBreadCrumbs">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>currentStep:%Integer,displayStep:%Integer,menuClass:%String,*maxSteps,impBi:Py.Builtins</FormalSpec>
+<Implementation><![CDATA[
+	#dim pyListOfSteps as Py.Builtins.list
+	set fMenu=$ZCVT($G(%request.Data("__Menu",1)),"O","JS")
+	set fMenuItem=$ZCVT($G(%request.Data("__MenuItem",1)),"O","JS")
+	set success=1
+	try {
+		set pyListOfSteps=$CLASSMETHOD(menuClass,"pyListOfSteps",currentStep)
+		set irisListOfSteps=##class(Py.Helper).ListFrompyList(pyListOfSteps,impBi)
+			
+		W !,"<div><table border=1 cellspacing=0 cellpadding=5 style='border-color:white;'><tr>"
+		if $Data(irisListOfSteps),$ListValid(irisListOfSteps),$ListGet(irisListOfSteps,1)'="" {
+			set maxSteps=$ListLength(irisListOfSteps)
+
+			for i=1:1:maxSteps {
+				set stepName=$ZCVT($ListGet(irisListOfSteps,i),"O","HTML")
+				
+				if i<displayStep {
+					W !,"<button class=""breadCrumbPrevious"" onclick=""doAction('",fMenu,"','",fMenuItem,"','",i,"')"">",stepName,"</button>"
+				} elseif i=displayStep {
+					W:i'=1 "&nbsp;->&nbsp;"
+					W !,"<span class=""breadCrumbCurrent"">",stepName,"&nbsp;&nbsp</span>"
+				} else {
+					W !,"&nbsp;->&nbsp;<span class=""breadCrumbNext"">",stepName,"&nbsp;&nbsp;</span>"
+				}	
+				W !,"</td>"
+			}
+		}
+		W !,"</tr></table></div>"
+		
+	} catch err {
+		// Todo add to error log
+		set success=0
+		set appError="Problem invoking pyListOfSteps method for class "_menuClass
+		set $ZE=appError_". Error: "_err.DisplayString()
+		do BACK^%ETN
+	}
+	quit success
+]]></Implementation>
+</Method>
+
+<Method name="DrawMenu">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>*menuClass=""</FormalSpec>
+<Implementation><![CDATA[
+	set fMenu=$G(%request.Data("__Menu",1))
+	set fMenuItem=$G(%request.Data("__MenuItem",1))
+	
+	//W !,"<h3>fMenu:",fMenu,"</h3>"
+	//W !,"<h3>fMenuItem:",fMenuItem,"</h3>"
+	
+	// Get the list of resource names for subclasses of Py.View.Template
+	s rs=##class(%ResultSet).%New()
+	s rs.ClassName="%Dictionary.ClassDefinition"
+	s rs.QueryName="SubclassOf"
+	set tSC=rs.Execute("Py.View.pyInterface")
+	if $$$ISOK(tSC) {
+		for {
+			quit:'rs.Next()
+			set classname=rs.Get("Name")
+
+			// Now get the value of ResourceName and MenuItemName
+			set parameter=##class(%Dictionary.CompiledParameter).%OpenId(classname_"||ResourceName",0)
+			continue:'$IsObject(parameter)
+			set pyResourcesName=parameter.Default
+			continue:pyResourcesName=""
+			W !,"<h3>pyResourcesName=",pyResourcesName,"</h3>"
+			
+			// check if this user has permission
+			continue:'$SYSTEM.Security.Check(pyResourcesName,"USE")
+			W !,"<h3>After permission check</h3>"
+			
+			set parameter=##class(%Dictionary.CompiledParameter).%OpenId(classname_"||MenuItemName",0)
+			continue:'$IsObject(parameter)
+			set pyMenuItemName=parameter.Default
+			set:pyMenuItemName="" pyMenuItemName=pyResourcesName
+			
+			set parameter=##class(%Dictionary.CompiledParameter).%OpenId(classname_"||MenuGroupName",0)
+			continue:'$IsObject(parameter)
+			set pyMenuGroupName=parameter.Default
+			set:pyMenuItemName="" pyMenuItemName="Miscellaneous"
+
+			set:pyResourcesName'="" menu(pyMenuGroupName,pyResourcesName)=$LB(pyMenuItemName,classname)
+		}		
+	}
+	if $Data(menu)<10 {
+		Quit	
+	}
+	
+	// count number of menus for menu navigation layout
+	set numberMenus=0
+	set menuGroup=""
+	for {
+		set menuGroup=$O(menu(menuGroup))
+		q:menuGroup=""
+		set numberMenus=numberMenus+1
+	}
+	
+	W !,"<script>"
+	W !,"function doAction(menu,menuItem,crumbStep) {"
+	W !,"  var frm=document.getElementById('frmCommon');"
+	W !,"  if (frm==null) { "
+	W !,"    return;"
+	W !,"  }"
+	W !,"  frm.elements['__Menu'].value=menu;"
+	W !,"  if ((typeof(menuItem)!='undefined')&&(menuItem!=null)) frm.elements['__MenuItem'].value=menuItem;"
+	W !,"  if ((typeof(crumbStep)!='undefined')&&(crumbStep!=null)) frm.elements['__CrumbStep'].value=crumbStep;"
+	W !,"  frm.submit();"
+	W !,"}"
+	W !,"</script>"
+	W !,"<form id=""frmCommon"" name=""frmCommon"">"
+	W !,"<input type=""hidden"" name=""__Menu"" value=""""/>"
+	W !,"<input type=""hidden"" name=""__MenuItem"" value=""""/>"
+	W !,"<input type=""hidden"" name=""__CrumbStep"" value=""""/>"
+	W !,"</form>"
+	
+	W !,"<table border=1 cellspacing=0 cellpadding=5 style='border-color:white;'>"
+	W !,"<tr bgcolor=white>"
+	
+	
+
+	// default one
+	set:fMenu="" fMenu=$O(menu(""))
+	if fMenu'="",$D(menu(fMenu)) {
+		set numberOfMenuItems=+$G(menu(fMenu))
+	} else {
+		set numberOfMenuItems=0	// Shouldn't occur. ie: No menu without items
+	}
+	
+	set menu=""
+	for {
+		set menu=$O(menu(menu))
+		q:menu=""
+		
+		if menu=fMenu {
+			W !,"<td class=""borderLeftTopRight""><span class=""pressedButton"">",$ZCVT(menu,"O","HTML"),"</span></td>"
+		} else {
+			W !,"<td class=""borderAll""><button onclick=""doAction('",$ZCVT(menu,"O","JS"),"','')"">",$ZCVT(menu,"O","HTML"),"</button></td>"
+		}
+	}	
+	W !,"<td class=""borderAll"" colspan=",(numberOfMenuItems-1)," width=""80%""> </td>"
+	W !,"</tr>"
+	W !,"<tr>"
+	
+	set menuItem=""
+	for {
+		set menuItem=$O(menu(fMenu,menuItem),1,menuData)
+		quit:menuItem=""
+		set menuItemText=$ZCVT($S($LV(menuData):$LG(menuData,1)),"O","HTML")
+		set menuItemJS=$ZCVT(menuItem,"O","JS")
+		set menuClass=$S($LV(menuData):$LG(menuData,2))
+		if (menuItem=fMenuItem) {
+			W !,"<td class=""borderLeftBottom""><span class=""pressedButton"">",menuItemText,"</span></td>"
+		} else {
+			W !,"<td class=""borderLeftBottom""><button onclick=""doAction('",$ZCVT(fMenu,"O","JS"),"','",menuItemJS,"')"">",menuItemText,"</button></td>"
+		}	
+	}
+	W !,"<td class=""borderRightBottom""> </td>"
+	W !,"</tr>"
+	W !,"</table>"
+	W !,"<hr/>"
+]]></Implementation>
+</Method>
+
+<Method name="AddCSSStyle">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	&html<
+	<Style>
+	.borderLeftTopRight {
+		border-width:1;
+		border-right-color:navy;
+		border-top-color:navy;
+		border-left-color:navy;
+		border-bottom-color:white;
+		background-color:#FFFFC0;
+	}
+	.borderRightTop {
+		border-width:1;
+		border-right-color:navy;
+		border-top-color:navy;
+		border-left-color:white;
+		border-bottom-color:white;
+		background-color:#FFFFC0;
+	}
+	.borderBottom {
+		border-width:1;
+		border-right-color:white;
+		border-top-color:white;
+		border-left-color:white;
+		border-bottom-color:navy;
+		background-color:#FFFFC0;
+	}
+	.borderLeftBottom {
+		border-width:1;
+		border-right-color:white;
+		border-top-color:white;
+		border-left-color:navy;
+		border-bottom-color:navy;
+		background-color:#FFFFC0;
+	}
+	.borderRightBottom {
+		border-width:1;
+		border-right-color:navy;
+		border-top-color:white;
+		border-left-color:white;
+		border-bottom-color:navy;
+		background-color:#FFFFC0;
+	}
+	.borderBottom {
+		border-width:1;
+		border-right-color:white;
+		border-top-color:white;
+		border-left-color:white;
+		border-bottom-color:navy;
+		background-color:#FFFFC0;
+	}
+	.borderAll {
+		border-width:1;
+		border-color:navy;
+		background-color:#e0e0e0;
+	}
+	.pressedButton {
+		background-color:#FFFFC0;
+		color:navy;	
+	}
+	.highlight {
+		font-weight:bold;
+		background-color:yellow;	
+	}
+	.breadCrumbPrevious {
+		text-decoration: underline;
+	}
+	.breadCrumbCurrent {
+		font-weight:bold;
+	}
+	.breadCrumbNext {
+		color:lightgrey;
+		text-shadow: 2px 2px darkgrey;
+	}
+	</Style>>
+]]></Implementation>
+</Method>
+</Class>
+</Export>

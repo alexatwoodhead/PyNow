@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:26:56">
+<Class name="Py.Builtins">
+<Description><![CDATA[
+PyNow
+Copyright Alex Woodhead 2021
+License MIT
+<pre>
+Author - Alex Woodhead  2021-05-08 - Code complete for Py Builtins productivity - V1
+</pre>
+<pre>
+Usage 1 - Method signature type
+Usage 2 - #dim new variable within method to get additional code coplete
+Typing "implBi." will trigger code complte
+Typing "pyListOfSteps." will trigger code complete
+<example>
+ClassMethod CodeComplete(impBi As Py.Builtins)
+{
+	#dim pyPlistOfSteps as Py.Builins.list
+    set pyListOfSteps=impBi.list()
+    do pyListOfSteps.append("one")
+}
+</example>]]></Description>
+<Abstract>1</Abstract>
+<TimeChanged>65873,80229.797920986</TimeChanged>
+<TimeCreated>65872,68864.9292033</TimeCreated>
+
+<Method name="bytearray">
+<Description><![CDATA[
+bytearray(iterable_of_ints) -> bytearray
+bytearray(string, encoding[, errors]) -> bytearray
+bytearray(bytes_or_buffer) -> mutable copy of bytes_or_buffer
+bytearray(int) -> bytes array of size given by the parameter initialized with null bytes
+bytearray() -> empty bytes array
+ 
+Construct a mutable bytearray object from:
+an iterable yielding integers in range(256)
+a text string encoded using the specified encoding
+a bytes or a buffer object
+any object implementing the buffer API.
+an integer]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="bytes">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="classmethod">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="complex">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="dict">
+<ClassMethod>1</ClassMethod>
+<ReturnType>Py.Builtins.dict</ReturnType>
+</Method>
+
+<Method name="enumerate">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="filter">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="float">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="frozenset">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="int">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="bool">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="list">
+<ClassMethod>1</ClassMethod>
+<ReturnType>Py.Builtins.list</ReturnType>
+</Method>
+
+<Method name="map">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="memoryview">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="property">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="range">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="reversed">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="set">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="slice">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="staticmethod">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="str">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="super">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="tuple">
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="typeName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&obj:%SYS.Python]]></FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[	return type(obj).__name__
+]]></Implementation>
+</Method>
+
+<Method name="zip">
+<ClassMethod>1</ClassMethod>
+</Method>
+</Class>
+</Export>

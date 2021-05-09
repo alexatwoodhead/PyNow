@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:27:13">
+<Class name="Py.Builtins.dict">
+<Description><![CDATA[
+Copyright Alex Woodhead 2021
+License MIT
+
+<pre>
+Author - Alex Woodhead  2021-05-08 - Code complete for Py Builtins productivity - V1
+</pre>
+<pre>
+Usage 1 - Method signature type
+Usage 2 - #dim new variable within method to get additional code coplete
+Typing "implBi." will trigger code complte
+Typing "pyListOfSteps." will trigger code complete
+<example>
+ClassMethod CodeComplete(impBi As Py.Builtins)
+{
+	#dim pyPlistOfSteps as Py.Builins.list
+    set pyListOfSteps=impBi.list()
+    do pyListOfSteps.append("one")
+}
+</example>
+dict() -> new empty dictionary
+dict(mapping) -> new dictionary initialized from a mapping object's
+    (key, value) pairs
+dict(iterable) -> new dictionary initialized as if via:
+    d = {}
+    for k, v in iterable:
+        d[k] = v
+dict(**kwargs) -> new dictionary initialized with the name=value pairs
+    in the keyword argument list.  For example:  dict(one=1, two=2)
+</pre>]]></Description>
+<Abstract>1</Abstract>
+<TimeChanged>65873,80155.942328298</TimeChanged>
+<TimeCreated>65872,70402.8348075</TimeCreated>
+
+<Method name="clear">
+<Description><![CDATA[
+D.clear() -> None.  Remove all items from D.]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="copy">
+<Description><![CDATA[
+D.copy() -> a shallow copy of D]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="get">
+<Description>
+Return the value for key if key is in the dictionary, else default.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key,default=None</FormalSpec>
+</Method>
+
+<Method name="items">
+<Description><![CDATA[
+D.items() -> a set-like object providing a view on D's items]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="keys">
+<Description><![CDATA[
+D.keys() -> a set-like object providing a view on D's keys]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="pop">
+<Description><![CDATA[
+D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
+If key is not found, d is returned if given, otherwise KeyError is raised]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="popitem">
+<Description>
+Remove and return a (key, value) pair as a 2-tuple.
+Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.</Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="setdefault">
+<Description>
+Insert key with a value of default if key is not in the dictionary.
+Return the value for key if key is in the dictionary, else default.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key,default=None</FormalSpec>
+</Method>
+
+<Method name="update">
+<Description><![CDATA[
+D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="values">
+<Description><![CDATA[
+D.values() -> an object providing a view on D's values]]></Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="fromkeys">
+<Description>
+Class methods defined here:
+Create a new dictionary with keys from iterable and values set to value.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>iterable,value=None</FormalSpec>
+</Method>
+
+<Method name="%setitem">
+<Description>
+Set self[key] to value.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key,value</FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[	dict[key]=value
+]]></Implementation>
+</Method>
+
+<Method name="%sizeof">
+<Description>
+size of D in memory, in bytes</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>self</FormalSpec>
+<Language>python</Language>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[    return self.__sizeof__()
+]]></Implementation>
+</Method>
+
+<Method name="%delitem">
+<Description>
+Delete self[key].</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>self,key</FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[ 	del self[key]
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:26:14">
+<Class name="Py.View.pyInterface">
+<Description>
+PyNow
+Copyright Alex Woodhead 2021
+License MIT</Description>
+<Abstract>1</Abstract>
+<TimeChanged>65873,80189.118840919</TimeChanged>
+<TimeCreated>65868,33207.583084</TimeCreated>
+
+<Parameter name="MenuItemName">
+<Description>
+This is the displayed App Sub-Menu name</Description>
+<Default>SetMenuItemName</Default>
+</Parameter>
+
+<Parameter name="ResourceName">
+<Description>
+Create unique security resource to match
+Leverages IRIS Security capabilities to restrict
+access to Py Apps.
+The User must belong to a Role assigned this Resource with "Use" privilage
+If the User belongs to a Role assigned this Resource with "Read and Write" privilage
+they will access in Admin mode to configure App images and other behaviours</Description>
+<Default>SetResourceName</Default>
+</Parameter>
+
+<Parameter name="MenuGroupName">
+<Description>
+This is the displayed App Menu name
+Unable to use $SYSTEM.Security.CheckRolesPermission with standard user
+to see which specific roles are assigned which resources
+so can't use IRIS Roles to model menu groupings.
+Therefore (as phase 1 functionality) we Hard code in App defintion App
+Can look to provide further app reuse and configuation in later version</Description>
+<Default>SetMenuGroupName</Default>
+</Parameter>
+
+<Parameter name="SubmitButtonName">
+<Default>Continue...</Default>
+</Parameter>
+
+<Method name="pyListOfSteps">
+<Description>
+This method is implemented by App developer in sub-class to provide
+the list of steps through a work-flow to provide navigation breadcrumbs.
+Return List of Dictionary (StepName:[name],CanReview:[Boolean],ClearAhead:[Boolean:true])
+The length of the list is the number of display steps in the workflow
+Unique Step name to display in breadcrumbs
+CanReview - Can this step be revisited (go back)
+ClearAhead - When going back a step or more, then if "submitting" again, the future steps are discarded</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>currentStep:%Integer=0</FormalSpec>
+<Language>python</Language>
+<ReturnType>Py.Builtins.list</ReturnType>
+<Implementation><![CDATA[	return ["Step 1"]
+]]></Implementation>
+</Method>
+
+<Method name="pyValidate">
+<Description>
+Each App step when "completed" is submitted
+This method is called first.
+If errors or messages the workflow does not advance to next step
+pyListOfErrors - Python List of Errors to be displayed along with redisplaying the current step WITH current values
+ For example - "%Silica MUST be a number between 20 and 80"
+pyListOfConfirmMessages - Python List of Messages to be displayed along with redisplaying the current step WITH current values
+ For example - "Confirm you want to save this"
+pyDictofRequestSteps - Python Dictionary of cumulative data submitted at each step
+  Allows the App to collect information in several steps before completing
+  a final operation. 
+  [
+   {Step:1, Data:{TODO}},
+   {Step:2, Data:{TODO}},
+   {Step:3, Data:{TODO}}
+  ]</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pyDictofRequestSteps:%SYS.Python,&pyListOfErrors:%SYS.Python,&pyListOfConfirmMessages:%SYS.Python,currentStep:%Integer=0]]></FormalSpec>
+<Language>python</Language>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[	return True
+]]></Implementation>
+</Method>
+
+<Method name="pyUpdate">
+<Description><![CDATA[
+Called after<ol>
+<li>Sucessful pyValidate (no errors or confirm messages)</li>
+<li>Resubmit of same form data after confirm messages acknowldged</li>
+</ol> 
+pRequestSteps - A cumulative Dictionary of data submitted at each step
+  Allows the App to collect information in several steps before completing
+  a final operation. 
+  [
+   {Step:1, Data:{TODO}},
+   {Step:2, Data:{TODO}},
+   {Step:3, Data:{TODO}}
+  ]
+Returns the next step number to move to
+Use this return as a mechanism to skip steps based on input
+TODO - 
+Extract information from pRequest and add to stepStore to retain between steps
+pMessages - Messages to be displayed above NEXT display step]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pyDictofRequestSteps:%SYS.Python,&pyListOfMessages:%SYS.Python,currentStep:%Integer=0]]></FormalSpec>
+<Language>python</Language>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[	return currentStep+1
+]]></Implementation>
+</Method>
+
+<Method name="pyDisplay">
+<Description><![CDATA[
+Called after<ol>
+ <li>Sucessful pyUpdate</li>
+ <li></li>
+</ol>
+tmpFilePath - To use to include image for output]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pyDictofRequestSteps:%SYS.Python,&pyDictofHTMLVariables:%SYS.Python,currentStep:%Integer,tmpFilePath:%String]]></FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[
+	pyDictofHTMLVariables['Message']='Hello App'
+	return
+]]></Implementation>
+</Method>
+
+<XData name="Step1">
+<Description>
+Example of HTML template for Step 1
+To activate feature simply populate pHTMLVariables via pyDisplay method
+Simply add subsequent XData blocks for additional display steps. </Description>
+<Data><![CDATA[<p>"{Message}"</p>
+]]></Data>
+</XData>
+</Class>
+</Export>

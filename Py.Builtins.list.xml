@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Red Hat Enterprise Linux for x86-64) 2021.1.0PYTHON (Build 208U)" ts="2021-05-09 22:27:33">
+<Class name="Py.Builtins.list">
+<Description><![CDATA[
+Copyright Alex Woodhead 2021
+License MIT
+
+<pre>
+Author - Alex Woodhead  2021-05-08 - Code complete for Py Builtins productivity - V1
+</pre>
+<pre>
+Usage 1 - Method signature type
+Usage 2 - #dim new variable within method to get additional code coplete
+Typing "implBi." will trigger code complte
+Typing "pyListOfSteps." will trigger code complete
+<example>
+ClassMethod CodeComplete(impBi As Py.Builtins)
+{
+	#dim pyPlistOfSteps as Py.Builins.list
+    set pyListOfSteps=impBi.list()
+    do pyListOfSteps.append("one")
+}
+</example>
+Built-in mutable sequence.
+If no argument is given, the constructor creates a new empty list.
+The argument must be an iterable if specified.]]></Description>
+<Abstract>1</Abstract>
+<TimeChanged>65873,80168.34667995</TimeChanged>
+<TimeCreated>65872,69738.9224538</TimeCreated>
+
+<Method name="%pyNew">
+<ClassMethod>1</ClassMethod>
+<Language>python</Language>
+<ReturnType>list</ReturnType>
+<Implementation><![CDATA[	return []
+]]></Implementation>
+</Method>
+
+<Method name="append">
+<Description>
+Append object to the end of the list.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>object</FormalSpec>
+</Method>
+
+<Method name="clear">
+<Description>
+Remove all items from list.</Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="copy">
+<Description>
+Return a shallow copy of the list.</Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="count">
+<Description>
+Return number of occurrences of value.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>value</FormalSpec>
+</Method>
+
+<Method name="extend">
+<Description>
+Extend list by appending elements from the iterable.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>iterable</FormalSpec>
+</Method>
+
+<Method name="index">
+<Description>
+Return first index of value.
+Raises ValueError if the value is not present</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>value,start=0,stop=9223372036854775807</FormalSpec>
+</Method>
+
+<Method name="insert">
+<Description>
+Insert object before index.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>index,object</FormalSpec>
+</Method>
+
+<Method name="pop">
+<Description>
+Remove and return item at index (default last).
+Raises IndexError if list is empty or index is out of range.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>index=-1</FormalSpec>
+</Method>
+
+<Method name="remove">
+<Description>
+Remove first occurrence of value.
+Raises ValueError if the value is not present.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>value</FormalSpec>
+</Method>
+
+<Method name="reverse">
+<Description>
+Reverse *IN PLACE*.</Description>
+<ClassMethod>1</ClassMethod>
+</Method>
+
+<Method name="sort">
+<Description>
+Sort the list in ascending order and return None.
+The sort is in-place (i.e. the list itself is modified) and stable (i.e. the
+order of two equal elements is maintained).
+If a key function is given, apply it once to each list item and sort them,
+ascending or descending, according to their function values.
+The reverse flag can be set to sort in descending order.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key=None,reverse=False</FormalSpec>
+</Method>
+
+<Method name="%add">
+<Description>
+Return self+value.
+This method is to concatenate lists
+To add items use the append method instead</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>self,value</FormalSpec>
+<Language>python</Language>
+<ReturnType>list</ReturnType>
+<Implementation><![CDATA[	self.__add__(value)
+]]></Implementation>
+</Method>
+
+<Method name="%contains">
+<Description>
+Return key in self.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>self,key</FormalSpec>
+<Language>python</Language>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[	return self.__contains__(key)
+]]></Implementation>
+</Method>
+
+<Method name="%delitem">
+<Description>
+Delete the item by position
+where index starts at 0</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>self,key</FormalSpec>
+<Language>python</Language>
+<Implementation><![CDATA[    self.__delitem__(key)
+]]></Implementation>
+</Method>
+</Class>
+</Export>
